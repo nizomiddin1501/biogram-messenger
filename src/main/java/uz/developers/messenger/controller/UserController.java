@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * Controller for handling requests related to User operations.
  * This controller provides RESTful endpoints to manage user records,
- * including creating, updating, retrieving, and deleting region information.
+ * including creating, updating, retrieving, and deleting user information.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -43,7 +43,7 @@ public class UserController {
      *
      * This method fetches all user records and returns them as a list of UserDto.
      *
-     * @return a ResponseEntity containing a CustomApiResponse with the list of UserDto representing all regions
+     * @return a ResponseEntity containing a CustomApiResponse with the list of UserDto representing all users
      */
     @Operation(summary = "Get all Users", description = "Retrieve a list of all users.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of users.")
@@ -70,7 +70,7 @@ public class UserController {
      * If the user does not exist, it returns a CustomApiResponse with a
      * message indicating that the user was not found and a 404 Not Found status.
      *
-     * @param id the ID of the region to retrieve
+     * @param id the ID of the user to retrieve
      * @return a ResponseEntity containing a CustomApiResponse with the UserDto and
      *         an HTTP status of OK, or a NOT FOUND status if the user does not exist.
      */
@@ -127,8 +127,8 @@ public class UserController {
     /**
      * Update the details of an existing user using the provided UserDto.
      *
-     * This method accepts the user's ID and a DTO containing updated region details.
-     * It updates the region record if it exists and returns the updated RegionDto object.
+     * This method accepts the user's ID and a DTO containing updated user details.
+     * It updates the user record if it exists and returns the updated UserDto object.
      *
      * @param id the ID of the user to be updated
      * @param userDto the DTO containing updated user details

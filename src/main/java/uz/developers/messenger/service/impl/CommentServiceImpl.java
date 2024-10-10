@@ -4,10 +4,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uz.developers.messenger.entity.Comment;
+import uz.developers.messenger.entity.Post;
 import uz.developers.messenger.exceptions.CommentException;
 import uz.developers.messenger.exceptions.ResourceNotFoundException;
 import uz.developers.messenger.payload.CommentDto;
 import uz.developers.messenger.repository.CommentRepository;
+import uz.developers.messenger.repository.PostRepository;
 import uz.developers.messenger.service.CommentService;
 
 import java.util.List;
@@ -21,16 +23,26 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
 
+    private final PostRepository postRepository;
+
     @Autowired
-    public CommentServiceImpl(ModelMapper modelMapper, CommentRepository commentRepository) {
+    public CommentServiceImpl(ModelMapper modelMapper, CommentRepository commentRepository, PostRepository postRepository) {
         this.modelMapper = modelMapper;
         this.commentRepository = commentRepository;
+        this.postRepository = postRepository;
     }
 
 
     @Override
     public List<CommentDto> getAllCommentsByPostId(Long postId) {
-        List<Comment> comments = commentRepository.findAll();
+        // 1. Postni bazadan olish
+        Post post = postRepository.findById(postId).orElseThrow(() ->
+                new ResourceNotFoundException("Post", "id", postId));
+
+        // 2. Postga tegishli barcha kommentlarni olish
+        List<Comment> comments = commentRepository.findByPostId(postId);
+
+        // 3. Kommentlarni DTO ga o'zgartirish va qaytarish
         return comments.stream()
                 .map(this::commentToDto)
                 .collect(Collectors.toList());
@@ -49,18 +61,25 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto createComment(Long postId, CommentDto commentDto) {
-        // 1. Convert DTO to entity
+        // 1. Find post by ID
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+
+        // 2. Convert DTO to entity
         Comment comment = dtoToComment(commentDto);
 
-        // 2. Perform business checks on the entity
-        if (comment.getContent() == null) {
-            throw new CommentException("Comment content must not be null");
+        // 3. Save Post to Comment
+             comment.setPost(post);
+
+        // 4. Perform business checks on the entity
+        if (comment.getContent() == null || comment.getContent().trim().isEmpty()) {
+            throw new CommentException("Comment content must not be null or empty");
         }
 
-        // 3. Save Comment
+        // 5. Save Comment
         Comment savedComment = commentRepository.save(comment);
 
-        // 4. Convert the saved Comment to DTO and return
+        // 6. Convert the saved Comment to DTO and return
         return commentToDto(savedComment);
     }
 
